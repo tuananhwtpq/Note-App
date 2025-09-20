@@ -63,7 +63,7 @@ class AddNoteFragment : Fragment(), MenuProvider {
         val noteContent = binding.edContent.text.toString().trim()
 
         if (noteTitle.isEmpty()) {
-            binding.edTitle.error = "Title is required"
+            Toast.makeText(requireContext(), "Title is required", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -77,7 +77,7 @@ class AddNoteFragment : Fragment(), MenuProvider {
         }
 
         if (noteContent.isEmpty()) {
-            binding.edContent.error = "Content is required"
+            Toast.makeText(requireContext(), "Content is required", Toast.LENGTH_SHORT).show()
             return
         }
 
