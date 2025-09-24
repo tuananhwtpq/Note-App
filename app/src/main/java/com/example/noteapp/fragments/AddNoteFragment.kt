@@ -82,7 +82,7 @@ class AddNoteFragment : Fragment(), MenuProvider {
         }
 
         val currentDateTime = LocalDateTime.now()
-        val formatter = DateTimeFormatter.ofPattern("d MMMM, yyyy")
+        val formatter = DateTimeFormatter.ofPattern("HH:mm - d MMMM, yyyy")
         val formattedTime = currentDateTime.format(formatter)
 
         val note = Note(0, noteTitle, noteContent, formattedTime)

@@ -76,7 +76,11 @@ class HomeFragment : Fragment(), SearchView.OnQueryTextListener, MenuProvider {
 
         activity?.let {
             notesViewModel.notes.observe(viewLifecycleOwner) { note ->
-                noteAdapter.differ.submitList(note)
+                noteAdapter.differ.submitList(note){
+                    if (note.isNotEmpty()){
+                        binding.rvAllNote.scrollToPosition(0)
+                    }
+                }
                 updateUI(note)
             }
         }
@@ -101,6 +105,12 @@ class HomeFragment : Fragment(), SearchView.OnQueryTextListener, MenuProvider {
         searchView = menuSearch.actionView as? SearchView
         searchView?.isSubmitButtonEnabled = false
         searchView?.setOnQueryTextListener(this)
+
+        searchView?.setOnCloseListener {
+            notesViewModel.clearSearch()
+            false
+        }
+
     }
 
     override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -115,9 +125,6 @@ class HomeFragment : Fragment(), SearchView.OnQueryTextListener, MenuProvider {
 
     override fun onResume() {
         super.onResume()
-        notesViewModel.clearSearch()
-        searchView?.setQuery("", false)
-        searchView?.isIconified = true
     }
 
 }
