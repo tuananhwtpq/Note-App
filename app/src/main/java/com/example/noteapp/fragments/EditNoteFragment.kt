@@ -16,6 +16,7 @@ import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.noteapp.MainActivity
 import com.example.noteapp.R
@@ -55,7 +56,16 @@ class EditNoteFragment : Fragment(), MenuProvider {
         menuHost.addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
         notesViewModel = (activity as MainActivity).noteViewModel
-        currentNote = args.note!!
+
+        val noteFromArgs = args.note
+
+        if (noteFromArgs == null){
+            Toast.makeText(requireContext(), "Note not found", Toast.LENGTH_SHORT).show()
+            findNavController().popBackStack()
+            return
+        }
+
+        currentNote = noteFromArgs
 
         binding.edTitle.setText(currentNote.title)
         binding.edContent.setText(currentNote.content)
@@ -76,7 +86,7 @@ class EditNoteFragment : Fragment(), MenuProvider {
         }
 
         val currentDateTime = LocalDateTime.now()
-        val formatter = DateTimeFormatter.ofPattern("d MMMM, yyyy")
+        val formatter = DateTimeFormatter.ofPattern("HH:mm - d MMMM, yyyy")
         val formattedTime = currentDateTime.format(formatter)
 
         val note = Note(currentNote.id, noteTitle, noteContent, formattedTime)

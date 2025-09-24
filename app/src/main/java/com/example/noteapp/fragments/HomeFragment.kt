@@ -13,6 +13,7 @@ import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.noteapp.MainActivity
 import com.example.noteapp.R
@@ -29,6 +30,8 @@ class HomeFragment : Fragment(), SearchView.OnQueryTextListener, MenuProvider {
     private lateinit var notesViewModel: NoteViewModel
     private lateinit var noteAdapter: NoteAdapter
     private var searchView: SearchView? = null
+
+    private var isListLayout: Boolean = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,6 +55,32 @@ class HomeFragment : Fragment(), SearchView.OnQueryTextListener, MenuProvider {
             it.findNavController().navigate(R.id.action_homeFragment_to_addNoteFragment)
         }
 
+        binding.ivChangeLayout.setOnClickListener { handleChangeLayoutBtn() }
+
+    }
+
+    private fun setLayout(){
+        if (isListLayout){
+            binding.rvAllNote.layoutManager = LinearLayoutManager(requireContext())
+        } else {
+            binding.rvAllNote.layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        }
+    }
+
+    private fun handleChangeLayoutBtn(){
+
+        isListLayout = !isListLayout
+
+        if (isListLayout){
+            binding.ivChangeLayout.setImageResource(R.drawable.list_layout)
+        } else{
+            binding.ivChangeLayout.setImageResource(R.drawable.grid)
+        }
+
+        noteAdapter.isListView = isListLayout
+
+        setLayout()
+        noteAdapter.notifyDataSetChanged()
     }
 
     private fun updateUI(note: List<Note>){
@@ -68,15 +97,26 @@ class HomeFragment : Fragment(), SearchView.OnQueryTextListener, MenuProvider {
 
     private fun setupHomeRecyclerView(){
         noteAdapter = NoteAdapter()
+
+        setLayout()
+
         binding.rvAllNote.apply {
-            layoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
             setHasFixedSize(true)
             adapter = noteAdapter
         }
 
         activity?.let {
             notesViewModel.notes.observe(viewLifecycleOwner) { note ->
-                noteAdapter.differ.submitList(note)
+
+                val oldSize = noteAdapter.itemCount
+
+                noteAdapter.differ.submitList(note){
+                    val newSize = note.size
+                    if (newSize > oldSize){
+                        binding.rvAllNote.scrollToPosition(0)
+                    }
+
+                }
                 updateUI(note)
             }
         }
@@ -101,6 +141,12 @@ class HomeFragment : Fragment(), SearchView.OnQueryTextListener, MenuProvider {
         searchView = menuSearch.actionView as? SearchView
         searchView?.isSubmitButtonEnabled = false
         searchView?.setOnQueryTextListener(this)
+
+        searchView?.setOnCloseListener {
+            notesViewModel.clearSearch()
+            false
+        }
+
     }
 
     override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -115,9 +161,6 @@ class HomeFragment : Fragment(), SearchView.OnQueryTextListener, MenuProvider {
 
     override fun onResume() {
         super.onResume()
-        notesViewModel.clearSearch()
-        searchView?.setQuery("", false)
-        searchView?.isIconified = true
     }
 
 }
